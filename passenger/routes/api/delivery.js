@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const {ObjectId} = require("mongodb");
-
+const { ObjectId } = require("mongodb");
 
 // Load Delivery model
 const Delivery = require("../../models/Delivery");
@@ -35,28 +34,27 @@ router.get(
   "/",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    Delivery
-   
-    .aggregate([
-     { "$lookup":
-     {
-       from: 'orders',
-       localField: 'order',
-       foreignField: '_id',
-       as:'order'
-     }},
-     {
-       "$unwind":"$order"
-     },
-    {
-       "$match":{"order.user":new ObjectId(req.user.id)}
-    }
+    Delivery.aggregate([
+      {
+        $lookup: {
+          from: "orders",
+          localField: "order",
+          foreignField: "_id",
+          as: "order"
+        }
+      },
+      {
+        $unwind: "$order"
+      },
+      {
+        $match: { "order.user": new ObjectId(req.user.id) }
+      }
     ])
       .then(delivery => {
         if (delivery.length == 0) {
           res.status(404).json({ msg: "Delivery boys not found" });
         }
-     
+
         res.json(delivery);
       })
       .catch(err => res.status(404).json(err));
